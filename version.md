@@ -19,8 +19,14 @@ for each release. These commit branches will be added as the release progresses.
 
 ## Version : Schema
 
-| Product Version | Product Last Support Date         | Product Release Date              | Target   | LTS                | Status             |
-|-----------------|-----------------------------------|-----------------------------------|:--------:|:------------------:|:------------------:|
+| Product Version | Product Last Support Date | Product Release Date | Target | LTS | Status |
+|-----------------|---------------------------|----------------------|:------:|:---:|:------:|
+| v1.x.x          | August 13th, 2026         | February 24th, 2025  | `12.x` |  ❌  |   ⏳    |
+| v2.x.x          | Q1 2027                   | Q1 2026              | `13.x` |  ❌  |   ⏳    |
+| v3.x.x          | Q1 2028                   | Q1 2027              | `14.x` |  ❌  |   ⏳    |
+| v4.x.x          | Q1 2029                   | Q1 2028              | `15.x` |  ❌  |   ⏳    |
+| v5.x.x          | Q1 2030                   | Q1 2029              | `16.x` |  ❌  |   ⏳    |
+| v6.x.x          | Q1 2031                   | Q1 2030              | `17.x` |  ❌  |   ⏳    |
 
 > **Note**
 > Version release dates may be earlier, it's just planned this way so that it can be followed by the entire community.
@@ -28,6 +34,6 @@ for each release. These commit branches will be added as the release progresses.
 ## Version : Information
 - The support life of the versions marked as LTS is determined as 3 years.
 - The support life of the versions marked as Non-LTS is determined as 1 year.
-- The target column represents the expansion packs of the official client.
+- Each value in the target column corresponds to expansion packs for a specific Laravel version.
 - It means that the versions marked in the status column are actively published.
 - **Selçuk Çukur** always reserves the right to change the release date of the version.
