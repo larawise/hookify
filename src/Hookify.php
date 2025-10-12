@@ -5,8 +5,6 @@ namespace Larawise\Hookify;
 use BackedEnum;
 use Illuminate\Contracts\Foundation\Application;
 use Larawise\Hookify\Contracts\HookifyContract;
-use Larawise\Support\Enums\Hook;
-use Larawise\Support\Enums\Hooks;
 
 /**
  * Srylius - The ultimate symphony for technology architecture!
@@ -71,32 +69,20 @@ class Hookify implements HookifyContract
     }
 
     /**
-     * Register one or more listeners to a hook.
+     * Dump the current listeners for a given hook type.
      *
-     * @param string|Hooks|array $hooks
-     * @param string|array|Closure $callback
-     * @param int $priority
-     * @param int $arguments
-     * @param Hook $type
-     * @param string|null $tag
+     * @param HookifyType $type
+     * @param string|BackedEnum|null $hook
      *
-     * @return static
+     * @return array
      */
-    public function push($hooks, $callback, $priority = 20, $arguments = 1, Hook $type = Hook::ACTION, $tag = null)
+    public function dump(HookifyType $type, $hook = null)
     {
-        foreach ((array) $hooks as $hook) {
-            while (isset($this->{$type->value}[$hook][$priority])) {
-                $priority++;
-            }
-
-            $this->{$type->value}[$hook][$priority] = compact('callback', 'arguments', 'tag');
-
-            if ($tag) {
-                $this->tags[$tag][$type->value][] = $hook;
-            }
+        if ($hook instanceof BackedEnum) {
+            $hook = $hook->value;
         }
 
-        return $this;
+        return $hook ? ($this->{$type->value}[$hook] ?? []) : $this->{$type->value};
     }
 
     /**
