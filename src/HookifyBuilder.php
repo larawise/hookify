@@ -88,11 +88,11 @@ class HookifyBuilder implements BuilderContract
     /**
      * Set the type of the hook: action or filter.
      *
-     * @param HookifyType $type
+     * @param string $type
      *
      * @return $this
      */
-    public function type(HookifyType $type)
+    public function type(string $type)
     {
         $this->type = $type;
 
