@@ -3,8 +3,10 @@
 namespace Larawise\Hookify;
 
 use BackedEnum;
+use Closure;
 use Illuminate\Contracts\Foundation\Application;
 use Larawise\Hookify\Contracts\HookifyContract;
+use Larawise\Hookify\Exceptions\HookifyException;
 
 /**
  * Srylius - The ultimate symphony for technology architecture!
@@ -69,6 +71,183 @@ class Hookify implements HookifyContract
     }
 
     /**
+     * Check if any listeners exist for a given hook.
+     *
+     * @param string|BackedEnum $hook
+     * @param HookifyType $type
+     *
+     * @return bool
+     */
+    public function exists($hook, HookifyType $type)
+    {
+        $name = $hook instanceof BackedEnum ? $hook->value : $hook;
+
+        return ! empty($this->{$type->value}[$name]);
+    }
+
+    /**
+     * Get all listeners registered for a given hook.
+     *
+     * @param string|BackedEnum $hook
+     * @param HookifyType $type
+     *
+     * @return array<int, array{callback: mixed, arguments: int, tag: string|null}>
+     */
+    public function listeners($hook, HookifyType $type)
+    {
+        $name = $hook instanceof BackedEnum ? $hook->value : $hook;
+
+        return $this->{$type->value}[$name] ?? [];
+    }
+
+    /**
+     * Register a listener definition.
+     *
+     * @param array<string, mixed> $definition
+     *
+     * @return void
+     */
+    public function push(array $definition)
+    {
+        $type = $definition['type'];
+        $hook = $definition['hook'];
+        $priority = $definition['priority'];
+
+        while (isset($this->{$type}[$hook][$priority])) {
+            $priority++;
+        }
+
+        $this->{$type}[$hook][$priority] = [
+            'callback'  => $definition['callback'],
+            'arguments' => $definition['arguments'],
+            'tag'       => $definition['tag'],
+        ];
+
+        if ($definition['tag']) {
+            $this->tags[$definition['tag']][$type][] = $hook;
+        }
+    }
+
+    /**
+     * Fire all action listeners for a given hook.
+     *
+     * @param string|BackedEnum $hook
+     * @param array $arguments
+     *
+     * @return void
+     */
+    public function fire($hook, $arguments = [])
+    {
+        $listeners = $this->actions[$hook] ?? [];
+        krsort($listeners, SORT_NUMERIC);
+
+        foreach ($listeners as $listener) {
+            $params = array_slice($arguments, 0, $listener['arguments']);
+            call_user_func_array($this->resolve($listener['callback']), $params);
+        }
+    }
+
+    /**
+     * Fire all action listeners associated with a given tag.
+     *
+     * @param string $tag
+     * @param array $arguments
+     *
+     * @return void
+     */
+    public function fireTag(string $tag, array $arguments = [])
+    {
+        $hooks = $this->tags[$tag][HookifyType::ACTION->value] ?? [];
+
+        foreach ($hooks as $hook) {
+            $this->fire($hook, $arguments);
+        }
+    }
+
+    /**
+     * Apply all filter listeners to a given hook.
+     *
+     * @param string $hook
+     * @param array $arguments
+     *
+     * @return mixed
+     */
+    public function filter(string $hook, array $arguments = [])
+    {
+        $value = $arguments[0] ?? null;
+        $listeners = $this->filters[$hook] ?? [];
+        ksort($listeners, SORT_NUMERIC);
+
+        foreach ($listeners as $listener) {
+            $params = [$value];
+            for ($i = 1; $i < $listener['arguments']; $i++) {
+                if (isset($arguments[$i])) {
+                    $params[] = $arguments[$i];
+                }
+            }
+
+            $value = call_user_func_array($this->resolve($listener['callback']), $params);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Apply all filter listeners associated with a given tag.
+     *
+     * @param string $tag
+     * @param array $arguments
+     *
+     * @return mixed
+     */
+    public function filterTag(string $tag, array $arguments = [])
+    {
+        $hooks = $this->tags[$tag][HookifyType::FILTER->value] ?? [];
+        $value = $arguments[0] ?? null;
+
+        foreach ($hooks as $hook) {
+            $arguments[0] = $value;
+            $value = $this->filter($hook, $arguments);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Remove all listeners for a specific hook.
+     *
+     * @param string|BackedEnum $hook
+     * @param HookifyType $type
+     *
+     * @return void
+     */
+    public function forget(string|BackedEnum $hook, HookifyType $type)
+    {
+        $name = $hook instanceof BackedEnum ? $hook->value : $hook;
+
+        unset($this->{$type->value}[$name]);
+    }
+
+    /**
+     * Remove all listeners associated with a specific tag.
+     *
+     * @param string $tag
+     * @param HookifyType $type
+     *
+     * @return void
+     */
+    public function forgetTag(string $tag, HookifyType $type)
+    {
+        $hooks = $this->tags[$tag][$type->value] ?? [];
+
+        foreach ($hooks as $hook) {
+            unset($this->{$type->value}[$hook]);
+        }
+
+        unset($this->tags[$tag][$type->value]);
+    }
+
+    /**
      * Dump the current listeners for a given hook type.
      *
      * @param HookifyType $type
@@ -111,5 +290,37 @@ class Hookify implements HookifyContract
         $this->actions = $state['actions'] ?? [];
         $this->filters = $state['filters'] ?? [];
         $this->tags    = $state['tags'] ?? [];
+    }
+
+    protected function resolve(mixed $callback): callable|false
+    {
+        // Laravel-style "Class@method"
+        if (is_string($callback) && str_contains($callback, '@')) {
+            [$class, $method] = explode('@', $callback);
+            $instance = app('\\' . $class);
+            return method_exists($instance, $method) ? [$instance, $method] : false;
+        }
+
+        // Global function name
+        if (is_string($callback) && function_exists($callback)) {
+            return $callback;
+        }
+
+        // Static method array
+        if (is_array($callback) && is_string($callback[0]) && method_exists($callback[0], $callback[1])) {
+            return $callback;
+        }
+
+        // Invokable object
+        if (is_object($callback) && method_exists($callback, '__invoke')) {
+            return $callback;
+        }
+
+        // Closure or callable array
+        if ($callback instanceof Closure || is_callable($callback)) {
+            return $callback;
+        }
+
+        return false;
     }
 }
