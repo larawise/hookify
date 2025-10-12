@@ -18,10 +18,10 @@ enum HookifyType: string
     /**
      * Executes listeners for side effects.
      */
-    case ACTION = 'action';
+    case ACTION = 'actions';
 
     /**
      * Executes listeners to transform data.
      */
-    case FILTER = 'filter';
+    case FILTER = 'filters';
 }
