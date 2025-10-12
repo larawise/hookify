@@ -15,7 +15,7 @@ Laravel version is released, a compatible version of this package will be prompt
 
 | Product Version | Product Last Support Date | Product Release Date | Target | LTS | Status |
 |-----------------|---------------------------|----------------------|:------:|:---:|:------:|
-| v1.x.x          | December 31st, 2025       | December 31st, 2026  | `12.x` |  ❌  |   ⏳    |
+| v1.x.x          | December 31st, 2026       | December 31st, 2025  | `12.x` |  ❌  |   ⏳    |
 | v2.x.x          | Q1 2026                   | Q1 2027              | `13.x` |  ❌  |   ⏳    |
 | v3.x.x          | Q1 2027                   | Q1 2028              | `14.x` |  ❌  |   ⏳    |
 | v4.x.x          | Q1 2028                   | Q1 2029              | `15.x` |  ❌  |   ⏳    |
