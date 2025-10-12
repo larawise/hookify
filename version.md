@@ -1,16 +1,15 @@
 ## Version : About
-In order to protect the semantic versioning mentality, we thought that it would be more accurate to proceed with a
-certain mentality in version upgrades. For this reason, we created a release algorithm. Detailed information about
-this release algorithm is given below.
+
+To preserve the principles of semantic versioning, we decided to follow a consistent approach in version upgrades.
+Therefore, we developed a release algorithm, detailed below.
 
 - `MAIN` - `UPDATE` - `PATCH`
-    - When we make a major change that is incompatible with the previous version, a version jump occurs in the **"MAIN"** part. (**2**.0.0)
-    - When we make an update / change compatible with the previous version, a version jump occurs in the **"UPDATE"** section. (2.**1**.0)
-    - When we make / apply a bug fix compatible with the previous version, a version jump occurs in the **"PATCH"** section. (2.1.**1**)
+    - When we introduce a major change that is incompatible with the previous version, the version increments in the **MAIN** segment. (**2**.0.0)
+    - When we introduce a backward-compatible update or change, the version increments in the **UPDATE** segment. (2.**1**.0)
+    - When we apply a backward-compatible bug fix, the version increments in the **PATCH** segment. (2.1.**1**)
 
-By continuously following the version updates of the official Laravel project, after the new version is released, the work to ensure
-compatibility with that version will be completed quickly and the version compatible with the new version will always be published
-urgently.
+By continuously tracking official Laravel version updates, we ensure rapid compatibility. Whenever a new
+Laravel version is released, a compatible version of this package will be promptly published.
 
 ## Version : Schema
 
@@ -24,11 +23,12 @@ urgently.
 | v6.x.x          | Q1 2031                   | Q1 2030              | `17.x` |  ❌  |   ⏳    |
 
 > **Note**
-> Version release dates may be earlier, it's just planned this way so that it can be followed by the entire community.
+> Version release dates may be adjusted. These are planned estimates to help the community follow the roadmap.
 
 ## Version : Information
-- The support life of the versions marked as LTS is determined as 3 years.
-- The support life of the versions marked as Non-LTS is determined as 1 year.
-- Each value in the target column corresponds to expansion packs for a specific Laravel version.
-- It means that the versions marked in the status column are actively published.
-- **Selçuk Çukur** always reserves the right to change the release date of the version.
+
+- Versions marked as LTS have a support lifecycle of 3 years.
+- Versions marked as Non-LTS have a support lifecycle of 1 year.
+- Each value in the target column corresponds to the Laravel version that the expansion pack is compatible with.
+- Versions marked in the status column indicate active releases.
+- **Selçuk Çukur** reserves the right to modify version release dates at any time.
