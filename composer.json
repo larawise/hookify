@@ -1,0 +1,54 @@
+{
+    "name"                  : "larawise/hookify",
+    "type"                  : "package",
+    "description"           : "A fluent, taggable, testable hook system for Laravel. Register listeners with clarity, fire actions with precision, and filter data with confidence — all in one elegant package.",
+    "keywords"              : ["hookify","hook","hooks","filters","actions","listeners","taggable","fluent","manager","container","snapshot","restore","callback","semantic","modular","laravel"],
+    "license"               : "MIT",
+    "homepage"              : "https://larawise.com/",
+
+    "authors"               : [{
+        "name"            : "Selçuk Çukur",
+        "email"           : "hk@selcukcukur.com.tr",
+        "homepage"        : "https://selcukcukur.com.tr"
+    }],
+
+    "support"               : {
+        "source"          : "https://github.com/larawise/hookify",
+        "issues"          : "https://github.com/larawise/hookify/issues",
+        "docs"            : "https://docs.larawise.com"
+    },
+
+    "require"               : {
+        "php"                               : "^8.2|^8.3|^8.4",
+        "larawise/larawise"                 : "dev-main",
+        "larawise/packagify"                : "dev-main"
+    },
+
+    "autoload"              : {
+        "psr-4"     : {
+            "Larawise\\Hookify\\"           : "./src"
+        }
+    },
+    "autoload-dev"          : {
+        "psr-4"     : {
+            "Larawise\\Tests\\"             : "./tests"
+        }
+    },
+
+    "extra"                 : {
+        "laravel"   : {
+            "providers"     : ["Larawise\\Hookify\\HookifyProvider"],
+            "aliases"       : { "Hookify": "Larawise\\Hookify\\Facades\\Hookify" }
+        }
+    },
+
+    "config"                : {
+        "optimize-autoloader"   : true,
+        "preferred-install"     : "dist",
+        "sort-packages"         : true,
+        "allow-plugins"         : {}
+    },
+
+    "minimum-stability"     : "dev",
+    "prefer-stable"         : true
+}
