@@ -5,6 +5,8 @@ namespace Larawise\Hookify;
 use BackedEnum;
 use Illuminate\Contracts\Foundation\Application;
 use Larawise\Hookify\Contracts\HookifyContract;
+use Larawise\Support\Enums\Hook;
+use Larawise\Support\Enums\Hooks;
 
 /**
  * Srylius - The ultimate symphony for technology architecture!
@@ -68,16 +70,60 @@ class Hookify implements HookifyContract
             ->type($type->value);
     }
 
-
     /**
-     * Start a new hook listener definition using fluent builder syntax.
+     * Register one or more listeners to a hook.
      *
-     * @return HookifyBuilder
+     * @param string|Hooks|array $hooks
+     * @param string|array|Closure $callback
+     * @param int $priority
+     * @param int $arguments
+     * @param Hook $type
+     * @param string|null $tag
+     *
+     * @return static
      */
-    public function builder(): HookifyBuilder
+    public function push($hooks, $callback, $priority = 20, $arguments = 1, Hook $type = Hook::ACTION, $tag = null)
     {
-        return new HookifyBuilder($this);
+        foreach ((array) $hooks as $hook) {
+            while (isset($this->{$type->value}[$hook][$priority])) {
+                $priority++;
+            }
+
+            $this->{$type->value}[$hook][$priority] = compact('callback', 'arguments', 'tag');
+
+            if ($tag) {
+                $this->tags[$tag][$type->value][] = $hook;
+            }
+        }
+
+        return $this;
     }
 
+    /**
+     * Take a snapshot of the current hook system state.
+     *
+     * @return array<string, array>
+     */
+    public function snapshot()
+    {
+        return [
+            'actions' => $this->actions,
+            'filters' => $this->filters,
+            'tags'    => $this->tags,
+        ];
+    }
 
+    /**
+     * Restore a previously captured hook system state.
+     *
+     * @param array<string, array> $state
+     *
+     * @return void
+     */
+    public function restore($state)
+    {
+        $this->actions = $state['actions'] ?? [];
+        $this->filters = $state['filters'] ?? [];
+        $this->tags    = $state['tags'] ?? [];
+    }
 }
