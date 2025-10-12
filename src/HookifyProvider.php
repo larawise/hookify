@@ -32,5 +32,9 @@ class HookifyProvider extends PackagifyProvider
 
         // Set the packagify package description.
         $package->description('A fluent, taggable, testable hook system for Laravel. Register listeners with clarity, fire actions with precision, and filter data with confidence — all in one elegant package.');
+
+        $package->hasSingletons([
+            'hookify' => fn ($app) => new HookifyManager($app),
+        ]);
     }
 }
