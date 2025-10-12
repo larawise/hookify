@@ -15,12 +15,12 @@ Laravel version is released, a compatible version of this package will be prompt
 
 | Product Version | Product Last Support Date | Product Release Date | Target | LTS | Status |
 |-----------------|---------------------------|----------------------|:------:|:---:|:------:|
-| v1.x.x          | August 13th, 2026         | February 24th, 2025  | `12.x` |  ❌  |   ⏳    |
-| v2.x.x          | Q1 2027                   | Q1 2026              | `13.x` |  ❌  |   ⏳    |
-| v3.x.x          | Q1 2028                   | Q1 2027              | `14.x` |  ❌  |   ⏳    |
-| v4.x.x          | Q1 2029                   | Q1 2028              | `15.x` |  ❌  |   ⏳    |
-| v5.x.x          | Q1 2030                   | Q1 2029              | `16.x` |  ❌  |   ⏳    |
-| v6.x.x          | Q1 2031                   | Q1 2030              | `17.x` |  ❌  |   ⏳    |
+| v1.x.x          | December 31st, 2025       | December 31st, 2026  | `12.x` |  ❌  |   ⏳    |
+| v2.x.x          | Q1 2026                   | Q1 2027              | `13.x` |  ❌  |   ⏳    |
+| v3.x.x          | Q1 2027                   | Q1 2028              | `14.x` |  ❌  |   ⏳    |
+| v4.x.x          | Q1 2028                   | Q1 2029              | `15.x` |  ❌  |   ⏳    |
+| v5.x.x          | Q1 2029                   | Q1 2030              | `16.x` |  ❌  |   ⏳    |
+| v6.x.x          | Q1 2030                   | Q1 2031              | `17.x` |  ❌  |   ⏳    |
 
 > **Note**
 > Version release dates may be adjusted. These are planned estimates to help the community follow the roadmap.
