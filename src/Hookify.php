@@ -124,7 +124,11 @@ class Hookify implements HookifyContract
         ];
 
         if ($definition['tag']) {
-            $this->tags[$definition['tag']][$type][] = $hook;
+            $tag = $definition['tag'];
+
+            if (! in_array($hook, $this->tags[$tag][$type] ?? [])) {
+                $this->tags[$tag][$type][] = $hook;
+            }
         }
     }
 
@@ -143,7 +147,13 @@ class Hookify implements HookifyContract
 
         foreach ($listeners as $listener) {
             $params = array_slice($arguments, 0, $listener['arguments']);
-            call_user_func_array($this->resolve($listener['callback']), $params);
+            $resolved = $this->resolve($listener['callback']);
+
+            if (! is_callable($resolved)) {
+                throw new HookifyException("Invalid callback for hook [$hook]");
+            }
+
+            call_user_func_array($resolved, $params);
         }
     }
 
@@ -186,7 +196,13 @@ class Hookify implements HookifyContract
                 }
             }
 
-            $value = call_user_func_array($this->resolve($listener['callback']), $params);
+            $resolved = $this->resolve($listener['callback']);
+
+            if (! is_callable($resolved)) {
+                throw new HookifyException("Invalid callback for hook [$hook]");
+            }
+
+            $value = call_user_func_array($resolved, $params);
         }
 
         return $value;
@@ -292,13 +308,28 @@ class Hookify implements HookifyContract
         $this->tags    = $state['tags'] ?? [];
     }
 
-    protected function resolve(mixed $callback): callable|false
+    /**
+     * Resolve a given callback into a valid callable.
+     *
+     * @param mixed $callback
+     *
+     * @return callable|bool
+     */
+    public function resolve($callback)
     {
         // Laravel-style "Class@method"
         if (is_string($callback) && str_contains($callback, '@')) {
             [$class, $method] = explode('@', $callback);
             $instance = app('\\' . $class);
             return method_exists($instance, $method) ? [$instance, $method] : false;
+        }
+
+        // Class name with __invoke
+        if (is_string($callback) && class_exists($callback)) {
+            $instance = app($callback);
+            if (method_exists($instance, '__invoke')) {
+                return $instance;
+            }
         }
 
         // Global function name
