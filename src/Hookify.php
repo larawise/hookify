@@ -7,6 +7,7 @@ use Closure;
 use Illuminate\Contracts\Foundation\Application;
 use Larawise\Hookify\Contracts\HookifyContract;
 use Larawise\Hookify\Exceptions\HookifyException;
+use Throwable;
 
 /**
  * Srylius - The ultimate symphony for technology architecture!
@@ -126,7 +127,7 @@ class Hookify implements HookifyContract
         if ($definition['tag']) {
             $tag = $definition['tag'];
 
-            if (! in_array($hook, $this->tags[$tag][$type] ?? [])) {
+            if (! in_array($hook, $this->tags[$tag][$type] ?? [], true)) {
                 $this->tags[$tag][$type][] = $hook;
             }
         }
@@ -146,14 +147,19 @@ class Hookify implements HookifyContract
         krsort($listeners, SORT_NUMERIC);
 
         foreach ($listeners as $listener) {
-            $params = array_slice($arguments, 0, $listener['arguments']);
+            $parameters = array_slice($arguments, 0, $listener['arguments']);
             $resolved = $this->resolve($listener['callback']);
 
             if (! is_callable($resolved)) {
-                throw new HookifyException("Invalid callback for hook [$hook]");
+                report(new HookifyException("Invalid callback for hook [$hook]"));
+                continue;
             }
 
-            call_user_func_array($resolved, $params);
+            try {
+                call_user_func_array($resolved, $parameters);
+            } catch (Throwable $exception) {
+                report($exception);
+            }
         }
     }
 
@@ -199,10 +205,15 @@ class Hookify implements HookifyContract
             $resolved = $this->resolve($listener['callback']);
 
             if (! is_callable($resolved)) {
-                throw new HookifyException("Invalid callback for hook [$hook]");
+                report(new HookifyException("Invalid callback for hook [$hook]"));
+                continue;
             }
 
-            $value = call_user_func_array($resolved, $params);
+            try {
+                $value = call_user_func_array($resolved, $params);
+            } catch (Throwable $exception) {
+                report($exception);
+            }
         }
 
         return $value;
@@ -281,6 +292,18 @@ class Hookify implements HookifyContract
     }
 
     /**
+     * Dump all hooks registered under a given tag.
+     *
+     * @param string $tag
+     *
+     * @return array<string, array<string>>
+     */
+    public function dumpTag(string $tag)
+    {
+        return $this->tags[$tag] ?? [];
+    }
+
+    /**
      * Take a snapshot of the current hook system state.
      *
      * @return array<string, array>
@@ -320,19 +343,17 @@ class Hookify implements HookifyContract
         // Laravel-style "Class@method"
         if (is_string($callback) && str_contains($callback, '@')) {
             [$class, $method] = explode('@', $callback);
-            $instance = app('\\' . $class);
+            $instance = $this->app->make($class);
             return method_exists($instance, $method) ? [$instance, $method] : false;
         }
 
-        // Class name with __invoke
+        // Invokable class name
         if (is_string($callback) && class_exists($callback)) {
-            $instance = app($callback);
-            if (method_exists($instance, '__invoke')) {
-                return $instance;
-            }
+            $instance = $this->app->make($callback);
+            return method_exists($instance, '__invoke') ? $instance : false;
         }
 
-        // Global function name
+        // Global function
         if (is_string($callback) && function_exists($callback)) {
             return $callback;
         }
@@ -347,7 +368,7 @@ class Hookify implements HookifyContract
             return $callback;
         }
 
-        // Closure or callable array
+        // Closure or callable
         if ($callback instanceof Closure || is_callable($callback)) {
             return $callback;
         }
