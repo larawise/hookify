@@ -343,8 +343,17 @@ class Hookify implements HookifyContract
         // Laravel-style "Class@method"
         if (is_string($callback) && str_contains($callback, '@')) {
             [$class, $method] = explode('@', $callback);
-            $instance = $this->app->make($class);
-            return method_exists($instance, $method) ? [$instance, $method] : false;
+
+            if (! class_exists($class) || ! method_exists($class, $method)) {
+                return null;
+            }
+
+            try {
+                $instance = $this->app->make($class);
+                return [$instance, $method];
+            } catch (Throwable $exception) {
+                return null;
+            }
         }
 
         // Invokable class name
