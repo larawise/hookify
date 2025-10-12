@@ -2,8 +2,6 @@
 
 namespace Larawise\Hookify;
 
-use Illuminate\Contracts\Foundation\Application;
-
 /**
  * Srylius - The ultimate symphony for technology architecture!
  *
@@ -15,16 +13,15 @@ use Illuminate\Contracts\Foundation\Application;
  *
  * @see https://docs.larawise.com/ Larawise : Docs
  */
-class HookifyManager
+enum HookifyType: string
 {
     /**
-     * Create a new hookify manager instance.
-     *
-     * @param Application $app
-     *
-     * @return void
+     * Executes listeners for side effects.
      */
-    public function __construct(
-        protected Application $app
-    ) { }
+    case ACTION = 'action';
+
+    /**
+     * Executes listeners to transform data.
+     */
+    case FILTER = 'filter';
 }
