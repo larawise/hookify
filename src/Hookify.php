@@ -58,20 +58,16 @@ class Hookify implements HookifyContract
      * Begin a new hook listener definition.
      *
      * @param string|BackedEnum $hook
-     * @param HookifyType $type
+     * @param string|HookifyType $type
      *
      * @return HookifyBuilder
      */
-    public function for(string|BackedEnum $hook, HookifyType $type)
+    public function for($hook, $type)
     {
-        if (empty($hook)) {
-            throw new HookifyException('Hook name cannot be empty.');
-        }
-
         $builder = new HookifyBuilder($this);
 
         return $builder
-            ->hook($hook instanceof BackedEnum ? $hook->value : $hook)
+            ->hook($this->normalizeHook($hook))
             ->type($type->value);
     }
 
@@ -79,30 +75,29 @@ class Hookify implements HookifyContract
      * Check if any listeners exist for a given hook.
      *
      * @param string|BackedEnum $hook
-     * @param HookifyType $type
+     * @param string|HookifyType $type
      *
      * @return bool
      */
-    public function exists(string|BackedEnum $hook, HookifyType $type)
+    public function exists($hook, $type)
     {
-        $name = $hook instanceof BackedEnum ? $hook->value : $hook;
+        $name = $this->normalizeHook($hook);
+        $type = $this->normalizeType($type);
 
-        return ! empty($this->{$type->value}[$name]);
+        return ! empty($this->{$type}[$name]);
     }
 
     /**
      * Get all listeners registered for a given hook.
      *
      * @param string|BackedEnum $hook
-     * @param HookifyType $type
+     * @param string|HookifyType $type
      *
-     * @return array<int, array{callback: mixed, arguments: int, tag: string|null}>
+     * @return array
      */
-    public function listeners(string|BackedEnum $hook, HookifyType $type)
+    public function listeners($hook, $type)
     {
-        $name = $hook instanceof BackedEnum ? $hook->value : $hook;
-
-        return $this->{$type->value}[$name] ?? [];
+        return $this->dump($type, $this->normalizeHook($hook));
     }
 
     /**
@@ -112,7 +107,7 @@ class Hookify implements HookifyContract
      *
      * @return void
      */
-    public function push(array $definition)
+    public function push($definition)
     {
         $type = $definition['type'];
         $hook = $definition['hook'];
@@ -128,7 +123,7 @@ class Hookify implements HookifyContract
             'tag'       => $definition['tag'],
         ];
 
-        if ($definition['tag']) {
+        if (! empty($definition['tag'])) {
             $tag = $definition['tag'];
 
             if (! in_array($hook, $this->tags[$tag][$type] ?? [], true)) {
@@ -145,7 +140,7 @@ class Hookify implements HookifyContract
      *
      * @return void
      */
-    public function fire(string|BackedEnum $hook, $arguments = [])
+    public function fire($hook, $arguments = [])
     {
         $listeners = $this->actions[$hook] ?? [];
         krsort($listeners, SORT_NUMERIC);
@@ -175,13 +170,11 @@ class Hookify implements HookifyContract
      *
      * @return void
      */
-    public function fireTag(string $tag, array $arguments = [])
+    public function fireTag($tag, $arguments = [])
     {
         $hooks = $this->tags[$tag][HookifyType::ACTION->value] ?? [];
 
-        foreach ($hooks as $hook) {
-            $this->fire($hook, $arguments);
-        }
+        array_map(fn ($hook) => $this->fire($hook, $arguments), $hooks);
     }
 
     /**
@@ -192,7 +185,7 @@ class Hookify implements HookifyContract
      *
      * @return mixed
      */
-    public function filter(string $hook, array $arguments = [])
+    public function filter($hook, $arguments = [])
     {
         $value = $arguments[0] ?? null;
         $listeners = $this->filters[$hook] ?? [];
@@ -231,30 +224,28 @@ class Hookify implements HookifyContract
      *
      * @return mixed
      */
-    public function filterTag(string $tag, array $arguments = [])
+    public function filterTag($tag, $arguments = [])
     {
         $hooks = $this->tags[$tag][HookifyType::FILTER->value] ?? [];
         $value = $arguments[0] ?? null;
 
-        foreach ($hooks as $hook) {
-            $arguments[0] = $value;
-            $value = $this->filter($hook, $arguments);
-        }
-
-        return $value;
+        return array_reduce($hooks, function ($carry, $hook) use (&$arguments) {
+            $arguments[0] = $carry;
+            return $this->filter($hook, $arguments);
+        }, $value);
     }
 
     /**
      * Remove all listeners for a specific hook.
      *
      * @param string|BackedEnum $hook
-     * @param HookifyType $type
+     * @param string|HookifyType $type
      *
      * @return void
      */
-    public function forget(string|BackedEnum $hook, HookifyType $type)
+    public function forget($hook, $type)
     {
-        $name = $hook instanceof BackedEnum ? $hook->value : $hook;
+        $name = $this->normalizeHook($hook);
 
         unset($this->{$type->value}[$name]);
     }
@@ -263,36 +254,36 @@ class Hookify implements HookifyContract
      * Remove all listeners associated with a specific tag.
      *
      * @param string $tag
-     * @param HookifyType $type
+     * @param string|HookifyType $type
      *
      * @return void
      */
-    public function forgetTag(string $tag, HookifyType $type)
+    public function forgetTag($tag, $type)
     {
-        $hooks = $this->tags[$tag][$type->value] ?? [];
+        $type = $this->normalizeType($type);
+        $hooks = $this->tags[$tag][$type] ?? [];
 
         foreach ($hooks as $hook) {
-            unset($this->{$type->value}[$hook]);
+            unset($this->{$type}[$hook]);
         }
 
-        unset($this->tags[$tag][$type->value]);
+        unset($this->tags[$tag][$type]);
     }
 
     /**
      * Dump the current listeners for a given hook type.
      *
-     * @param HookifyType $type
+     * @param string|HookifyType $type
      * @param string|BackedEnum|null $hook
      *
      * @return array
      */
-    public function dump(HookifyType $type, $hook = null)
+    public function dump($type, $hook = null)
     {
-        if ($hook instanceof BackedEnum) {
-            $hook = $hook->value;
-        }
+        $name = $this->normalizeHook($hook);
+        $type = $this->normalizeType($type);
 
-        return $hook ? ($this->{$type->value}[$hook] ?? []) : $this->{$type->value};
+        return $name ? ($this->{$type}[$name] ?? []) : $this->{$type};
     }
 
     /**
@@ -302,7 +293,7 @@ class Hookify implements HookifyContract
      *
      * @return array<string, array<string>>
      */
-    public function dumpTag(string $tag)
+    public function dumpTag($tag)
     {
         return $this->tags[$tag] ?? [];
     }
@@ -317,7 +308,7 @@ class Hookify implements HookifyContract
         return [
             'actions' => $this->actions,
             'filters' => $this->filters,
-            'tags'    => $this->tags,
+            'tags' => $this->tags,
         ];
     }
 
@@ -332,7 +323,7 @@ class Hookify implements HookifyContract
     {
         $this->actions = $state['actions'] ?? [];
         $this->filters = $state['filters'] ?? [];
-        $this->tags    = $state['tags'] ?? [];
+        $this->tags = $state['tags'] ?? [];
     }
 
     /**
@@ -387,5 +378,29 @@ class Hookify implements HookifyContract
         }
 
         return false;
+    }
+
+    /**
+     * Normalize a hook name to its string representation.
+     *
+     * @param string|BackedEnum $hook
+     *
+     * @return string
+     */
+    protected function normalizeHook($hook)
+    {
+        return $hook instanceof BackedEnum ? $hook->value : $hook;
+    }
+
+    /**
+     * Normalize a type value to its string representation.
+     *
+     * @param HookifyType $type
+     *
+     * @return string
+     */
+    protected function normalizeType($type)
+    {
+        return $type->value;
     }
 }

@@ -4,6 +4,7 @@ namespace Larawise\Hookify;
 
 use Closure;
 use Larawise\Hookify\Contracts\BuilderContract;
+use Larawise\Hookify\Exceptions\HookifyException;
 
 /**
  * Srylius - The ultimate symphony for technology architecture!
@@ -78,8 +79,12 @@ class HookifyBuilder implements BuilderContract
      *
      * @return $this
      */
-    public function hook(string $hook)
+    public function hook($hook)
     {
+        if (empty($this->hook)) {
+            throw new HookifyException('Hook name cannot be empty.');
+        }
+
         $this->hook = $hook;
 
         return $this;
@@ -92,8 +97,12 @@ class HookifyBuilder implements BuilderContract
      *
      * @return $this
      */
-    public function type(string $type)
+    public function type($type)
     {
+        if (! in_array($this->type, [HookifyType::ACTION->value, HookifyType::FILTER->value], true)) {
+            throw new HookifyException("Invalid hook type: {$this->type}");
+        }
+
         $this->type = $type;
 
         return $this;
@@ -106,8 +115,12 @@ class HookifyBuilder implements BuilderContract
      *
      * @return $this
      */
-    public function priority(int $priority)
+    public function priority($priority)
     {
+        if (! is_int($this->priority) || $this->priority < 0) {
+            throw new HookifyException('Priority must be a non-negative integer.');
+        }
+
         $this->priority = $priority;
 
         return $this;
@@ -120,8 +133,12 @@ class HookifyBuilder implements BuilderContract
      *
      * @return $this
      */
-    public function arguments(int $arguments)
+    public function arguments($arguments)
     {
+        if (! is_int($this->arguments) || $this->arguments < 0) {
+            throw new HookifyException('Arguments must be a non-negative integer.');
+        }
+
         $this->arguments = $arguments;
 
         return $this;
@@ -134,7 +151,7 @@ class HookifyBuilder implements BuilderContract
      *
      * @return $this
      */
-    public function tag(string $tag)
+    public function tag($tag)
     {
         $this->tag = $tag;
 
@@ -150,6 +167,10 @@ class HookifyBuilder implements BuilderContract
      */
     public function callback($callback)
     {
+        if (! is_callable($this->callback) && ! is_string($this->callback) && ! is_array($this->callback)) {
+            throw new HookifyException('Callback must be a Closure, string, or array.');
+        }
+
         $this->callback = $callback;
 
         return $this;
