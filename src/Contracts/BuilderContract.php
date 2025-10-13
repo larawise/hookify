@@ -18,6 +18,24 @@ use Illuminate\Contracts\Support\Arrayable;
 interface BuilderContract extends Arrayable
 {
     /**
+     * Set the hook name this listener will be registered under.
+     *
+     * @param string $hook
+     *
+     * @return $this
+     */
+    public function hook(string $hook);
+
+    /**
+     * Set the type of the hook: action or filter.
+     *
+     * @param string $type
+     *
+     * @return $this
+     */
+    public function type(string $type);
+
+    /**
      * Set the execution priority for the listener.
      *
      * @param int $priority

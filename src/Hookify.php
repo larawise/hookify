@@ -62,8 +62,12 @@ class Hookify implements HookifyContract
      *
      * @return HookifyBuilder
      */
-    public function for($hook, HookifyType $type)
+    public function for(string|BackedEnum $hook, HookifyType $type)
     {
+        if (empty($hook)) {
+            throw new HookifyException('Hook name cannot be empty.');
+        }
+
         $builder = new HookifyBuilder($this);
 
         return $builder
@@ -79,7 +83,7 @@ class Hookify implements HookifyContract
      *
      * @return bool
      */
-    public function exists($hook, HookifyType $type)
+    public function exists(string|BackedEnum $hook, HookifyType $type)
     {
         $name = $hook instanceof BackedEnum ? $hook->value : $hook;
 
@@ -94,7 +98,7 @@ class Hookify implements HookifyContract
      *
      * @return array<int, array{callback: mixed, arguments: int, tag: string|null}>
      */
-    public function listeners($hook, HookifyType $type)
+    public function listeners(string|BackedEnum $hook, HookifyType $type)
     {
         $name = $hook instanceof BackedEnum ? $hook->value : $hook;
 
@@ -141,7 +145,7 @@ class Hookify implements HookifyContract
      *
      * @return void
      */
-    public function fire($hook, $arguments = [])
+    public function fire(string|BackedEnum $hook, $arguments = [])
     {
         $listeners = $this->actions[$hook] ?? [];
         krsort($listeners, SORT_NUMERIC);

@@ -142,7 +142,7 @@ class HookifyBuilder implements BuilderContract
     }
 
     /**
-     * Finalize the listener registration by providing the callback.
+     * Set the callback for the hook.
      *
      * @param Closure|string|array $callback
      *
@@ -152,9 +152,17 @@ class HookifyBuilder implements BuilderContract
     {
         $this->callback = $callback;
 
-        $this->hookify->push($this->toArray());
-
         return $this;
+    }
+
+    /**
+     * Finalize and register the hook.
+     *
+     * @return void
+     */
+    public function push()
+    {
+        $this->hookify->push($this->toArray());
     }
 
     /**
