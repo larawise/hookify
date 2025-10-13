@@ -23,6 +23,13 @@
         "larawise/larawise"                 : "dev-main",
         "larawise/packagify"                : "dev-main"
     },
+    "require-dev"           : {
+        "pestphp/pest"                  : "^4.0",
+        "pestphp/pest-plugin-laravel"   : "^4.0",
+        "pestphp/pest-plugin-dirty"     : "^4.0",
+        "nunomaduro/collision"          : "^8.6",
+        "orchestra/testbench"           : "^10.0"
+    },
 
     "autoload"              : {
         "psr-4"     : {
@@ -40,6 +47,12 @@
             "providers"     : ["Larawise\\Hookify\\HookifyProvider"],
             "aliases"       : { "Hookify": "Larawise\\Hookify\\Facades\\Hookify" }
         }
+    },
+
+    "scripts"               : {
+        "test"                  : "vendor/bin/pest --colors=always",
+        "test-coverage"         : "@test --coverage",
+        "test-dirty"            : "@test --dirty --compact"
     },
 
     "config"                : {
