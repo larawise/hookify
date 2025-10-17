@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Arr;
 use Larawise\Hookify\Facades\Hookify;
 use Larawise\Hookify\HookifyType;
 

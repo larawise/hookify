@@ -26,7 +26,6 @@
     "require-dev"           : {
         "pestphp/pest"                  : "^4.0",
         "pestphp/pest-plugin-laravel"   : "^4.0",
-        "pestphp/pest-plugin-dirty"     : "^4.0",
         "nunomaduro/collision"          : "^8.6",
         "orchestra/testbench"           : "^10.0"
     },
@@ -59,7 +58,9 @@
         "optimize-autoloader"   : true,
         "preferred-install"     : "dist",
         "sort-packages"         : true,
-        "allow-plugins"         : {}
+        "allow-plugins"         : {
+            "pestphp/pest-plugin"               : true
+        }
     },
 
     "minimum-stability"     : "dev",
